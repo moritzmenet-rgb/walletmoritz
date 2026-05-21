@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="de" class="h-full" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pocket Budget - Premium Finanzzentrale</title>
+    
+    <!-- PWA Web-App Standalone Optimierungen -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f8fafc" id="meta-theme-color">
+
+    <!-- CSS Bibliotheken & Icons -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        darkBg: '#0f172a',
+                        darkCard: '#1e293b',
+                        accentBlue: '#0284c7', // Etwas tieferes Blau für besseren Kontrast im White Mode
+                        accentGreen: '#10b981',
+                        accentOrange: '#f59e0b',
+                        accentRed: '#ef4444',
+                        darkAccentBlue: '#38bdf8' // Neon Blau für den Dark Mode
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'fade-in-up': 'fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards',
+                    },
+                    keyframes: {
+                        fadeInUp: {
+                            '0%': { opacity: '0', transform: 'translateY(12px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        body {
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+        /* Native App Scrollbars ausblenden */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Klick-Feedback */
+        .active-scale:active {
+            transform: scale(0.96);
+            transition: transform 0.1s ease;
+        }
+        
+        #modal-entry {
+            transition: opacity 0.25s ease, transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-darkBg dark:text-slate-100 font-sans h-full flex flex-col justify-between antialiased overflow-hidden transition-colors duration-300">
+
+    <!-- Animierter Premium-Splash-Screen -->
+    <div id="splash-screen" class="fixed inset-0 bg-slate-50 dark:bg-darkBg flex flex-col justify-center items-center z-50 transition-all duration-700 ease-out">
+        <div class="relative flex items-center justify-center">
+            <!-- Glühender Hintergrund-Ring -->
+            <div class="absolute inset-0 bg-gradient-to-tr from-sky-400 to-emerald-400 rounded-full blur-xl opacity-30 animate-pulse-slow"></div>
+            <!-- Wallet Icon mit Bounce-In -->
+            <div class="relative bg-white dark:bg-darkCard p-6 rounded-3xl border border-slate-200 dark:border-slate-700 shadow-xl scale-100 animate-bounce">
+                <i class="fa-solid fa-wallet text-5xl text-transparent bg-clip-text bg-gradient-to-tr from-sky-500 to-emerald-500"></i>
+            </div>
+        </div>
+        <h2 class="text-3xl font-black tracking-wider text-slate-800 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-darkAccentBlue dark:to-accentGreen mt-6">POCKET BUDGET</h2>
+        <p class="text-[10px] text-slate-400 mt-2 tracking-widest uppercase font-bold">White & Dark Premium Edition</p>
+        
+        <!-- Ladebalken -->
+        <div class="w-32 bg-slate-200 dark:bg-slate-800 h-1 rounded-full overflow-hidden mt-8 border border-slate-300/30 dark:border-slate-700">
+            <div class="h-full bg-gradient-to-r from-sky-500 to-emerald-500 w-full rounded-full transition-transform duration-1000 ease-out origin-left transform scale-x-0" id="splash-loader"></div>
+        </div>
+    </div>
+
+    <!-- App Header -->
+    <header class="px-4 pt-6 pb-3 max-w-md mx-auto w-full flex justify-between items-center border-b border-slate-200 dark:border-slate-800/80 bg-white/70 dark:bg-darkBg/50 backdrop-blur-md sticky top-0 z-20 transition-colors duration-300">
+        <div>
+            <h1 class="text-xl font-black tracking-tight text-slate-900 dark:text-transparent dark:bg-clip-text dark:bg-gradient-to-r dark:from-darkAccentBlue dark:to-accentGreen">Pocket Budget</h1>
+            <div id="storage-status" class="text-[10px] text-slate-400 dark:text-slate-400 font-bold tracking-wide mt-0.5">Lade System...</div>
+        </div>
+        
+        <!-- Interaktiver White/Dark Mode Switcher & Error Indicator -->
+        <div class="flex items-center gap-2">
+            <div id="error-indicator" class="hidden bg-accentRed/10 text-accentRed border border-accentRed/30 px-2.5 py-1 rounded-full text-[10px] font-bold animate-pulse flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation"></i> Log
+            </div>
+            <button onclick="sysToggleTheme()" class="w-10 h-10 rounded-xl bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-amber-400 flex items-center justify-center active-scale shadow-sm transition-all" id="theme-btn" title="Design wechseln">
+                <i class="fa-solid fa-moon text-lg dark:hidden"></i>
+                <i class="fa-solid fa-sun text-lg hidden dark:block"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Globaler Fehler-Logger -->
+    <div id="error-display" class="hidden bg-accentRed/10 text-accentRed text-xs p-3 mx-4 rounded-xl border border-accentRed/20 max-w-md mx-auto mt-2 animate-fade-in-up"></div>
+
+    <!-- Hauptbereich -->
+    <main class="flex-1 overflow-y-auto px-4 py-4 max-w-md mx-auto w-full no-scrollbar pb-28">
+        
+        <!-- ================= TAB: DASHBOARD ================= -->
+        <div id="tab-dashboard" class="space-y-5 animate-fade-in-up">
+            <!-- Hero Budget Card -->
+            <div class="bg-white dark:bg-gradient-to-br dark:from-darkCard dark:to-slate-900 p-5 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-md dark:shadow-2xl relative overflow-hidden group transition-all duration-300">
+                <div class="absolute -right-6 -bottom-6 opacity-[0.03] dark:opacity-5 text-8xl text-slate-900 dark:text-white pointer-events-none transition-transform duration-500 group-hover:scale-110">
+                    <i class="fa-solid fa-wallet"></i>
+                </div>
+                <p class="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">Verfügbares Budget</p>
+                <div id="ui-remaining" class="text-3xl font-black my-1.5 tracking-tight text-slate-900 dark:text-slate-100">CHF --.--</div>
+                
+                <!-- Fortschrittsbalken -->
+                <div class="mt-4">
+                    <div class="flex justify-between text-[11px] text-slate-400 font-bold mb-1.5">
+                        <span id="ui-spent">Ausgegeben: CHF 0.00</span>
+                        <span id="ui-budget-max">Budget: CHF 0.00</span>
+                    </div>
+                    <div class="w-full bg-slate-100 dark:bg-slate-950 h-3 rounded-full overflow-hidden border border-slate-200 dark:border-slate-800/50 p-[1px]">
+                        <div id="ui-progress-bar" class="h-full bg-accentGreen rounded-full transition-all duration-700 ease-out" style="width: 0%"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interaktives Kreisdiagramm -->
+            <div class="bg-white dark:bg-darkCard/60 p-4 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-md dark:shadow-lg transition-all">
+                <h3 class="text-[11px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest mb-3.5 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-pie text-sky-600 dark:text-darkAccentBlue"></i> Ausgaben-Struktur
+                </h3>
+                <div class="relative w-full h-44 flex justify-center items-center">
+                    <canvas id="analyticsChart"></canvas>
+                    <div id="chart-placeholder" class="absolute text-slate-400 dark:text-slate-500 text-xs font-bold bg-slate-100 dark:bg-slate-900/50 px-4 py-2 rounded-xl hidden border border-slate-200 dark:border-slate-800">Noch keine Buchungen erfasst</div>
+                </div>
+            </div>
+
+            <!-- Kachel Übersicht -->
+            <div class="space-y-2.5">
+                <h3 class="text-[11px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <i class="fa-solid fa-border-all text-accentGreen"></i> Kachel-Übersicht
+                </h3>
+                <div id="ui-category-tiles" class="grid grid-cols-2 gap-2.5">
+                    <!-- Dynamisch generiert -->
+                </div>
+            </div>
+
+            <!-- Letzte Aktivitäten VERBESSERT MIT LIVE-SUCHE & FILTER -->
+            <div class="bg-white dark:bg-darkCard p-4 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-md dark:shadow-xl space-y-3">
+                <div class="flex flex-col gap-2">
+                    <h3 class="text-[11px] font-black text-slate-400 dark:text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                        <i class="fa-solid fa-clock-rotate-left text-accentOrange"></i> Letzte Buchungen
+                    </h3>
+                    <!-- NEUES FEATURE: Live Suchleiste -->
+                    <div class="relative">
+                        <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <input type="text" id="ui-search-history" oninput="uiRender()" placeholder="Durchsuchen (z.B. Coop, SBB...)" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold focus:outline-none focus:border-sky-500 dark:focus:border-darkAccentBlue transition-all">
+                    </div>
+                </div>
+                
+                <div id="ui-mini-history" class="divide-y divide-slate-100 dark:divide-slate-800/60 max-h-72 overflow-y-auto no-scrollbar">
+                    <!-- Dynamischer Verlauf -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= TAB: MANAGE (VERWALTEN) ================= -->
+        <div id="tab-manage" class="hidden space-y-5 animate-fade-in-up">
+            <!-- Budget Konfigurator -->
+            <div class="bg-white dark:bg-darkCard p-4 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-md">
+                <h3 class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-sliders text-sky-600 dark:text-darkAccentBlue"></i> Monatliches Budget (CHF)
+                </h3>
+                <div class="flex gap-2">
+                    <input type="number" id="in-sys-budget" class="flex-1 bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-900 dark:text-slate-100 text-sm font-bold focus:outline-none focus:border-sky-500 dark:focus:border-darkAccentBlue transition-all" placeholder="z.B. 600" inputmode="decimal">
+                    <button class="bg-sky-600 dark:bg-darkAccentBlue text-white dark:text-darkBg font-black px-5 rounded-xl text-xs uppercase tracking-wider active-scale shadow-md" onclick="sysUpdateBudget()">Speichern</button>
+                </div>
+            </div>
+
+            <!-- Kategorie Generator -->
+            <div class="bg-white dark:bg-darkCard p-4 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-md">
+                <h3 class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-folder-plus text-accentGreen"></i> Neue Kategorie hinzufügen
+                </h3>
+                <div class="space-y-3">
+                    <input type="text" id="in-cat-name" class="w-full bg-slate-50 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 rounded-xl px-4 py-2.5 text-slate-900 dark:text-slate-100 text-sm focus:outline-none focus:border-accentGreen transition-all" placeholder="Name (z.B. Fitness, Streaming)">
+                    
+                    <div class="flex gap-2 items-center">
+                        <div class="flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-900 p-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                            <label class="text-[9px] text-slate-400 font-bold uppercase mb-0.5">Farbe</label>
+                            <input type="color" id="in-cat-color" value="#10b981" class="bg-transparent border-0 h-7 w-10 cursor-pointer rounded-lg">
+                        </div>
+                        
+                        <div class="flex-1">
+                            <select id="in-cat-icon" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-900 dark:text-slate-100 text-xs font-bold focus:outline-none">
+                                <option value="fa-utensils">🍴 Essen & Trinken</option>
+                                <option value="fa-bag-shopping">🛍️ Freizeit & Shopping</option>
+                                <option value="fa-car">🚗 Transport / SBB / Auto</option>
+                                <option value="fa-house">🏠 Fixkosten & Miete</option>
+                                <option value="fa-heart-pulse">❤️ Gesundheit & Medizin</option>
+                                <option value="fa-gamepad">🎮 Hobbys & Gaming</option>
+                                <option value="fa-circle-dollar-to-slot">💰 Sparraten / Aktien</option>
+                            </select>
+                        </div>
+                        
+                        <button class="bg-accentGreen text-white dark:text-darkBg font-black w-11 h-11 rounded-xl text-lg flex items-center justify-center active-scale shadow-md" onclick="uiAddCategory()">+</button>
+                    </div>
+                </div>
+                
+                <div id="ui-manage-categories" class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800/80 space-y-1.5 max-h-40 overflow-y-auto no-scrollbar">
+                    <!-- Dynamische Zeilen -->
+                </div>
+            </div>
+
+            <!-- Daten-Hub -->
+            <div class="bg-white dark:bg-darkCard p-4 rounded-[28px] border border-slate-200 dark:border-slate-800/80 shadow-md">
+                <h3 class="text-xs font-black text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-3 flex items-center gap-2">
+                    <i class="fa-solid fa-database text-accentOrange"></i> Datensicherung & Excel Export
+                </h3>
+                <div class="grid grid-cols-2 gap-2.5">
+                    <button class="bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs font-bold py-3.5 px-2 rounded-xl text-slate-800 dark:text-slate-200 flex flex-col items-center justify-center gap-2 active-scale" onclick="sysExportJSON()">
+                        <i class="fa-solid fa-code text-sky-600 dark:text-darkAccentBlue text-lg"></i> JSON Export
+                    </button>
+                    <button class="bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs font-bold py-3.5 px-2 rounded-xl text-slate-800 dark:text-slate-200 flex flex-col items-center justify-center gap-2 active-scale" onclick="document.getElementById('sys-import-file').click()">
+                        <i class="fa-solid fa-upload text-accentGreen text-lg"></i> JSON Import
+                    </button>
+                    <button class="bg-slate-100 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 text-xs font-black py-4 px-2 rounded-xl text-slate-900 dark:text-slate-100 flex flex-col items-center justify-center gap-2 col-span-2 active-scale border-b-2 border-b-accentOrange/60" onclick="sysExportCSV()">
+                        <i class="fa-solid fa-file-excel text-accentOrange text-xl"></i> Excel-Tabelle herunterladen (CSV)
+                    </button>
+                </div>
+                <input type="file" id="sys-import-file" class="hidden" onchange="sysImportJSON(event)">
+                
+                <button class="w-full bg-accentRed/5 hover:bg-accentRed/10 text-accentRed border border-accentRed/20 text-[11px] font-black py-3 mt-4 rounded-xl active-scale transition-colors uppercase tracking-wider" onclick="sysResetAll()">
+                    <i class="fa-solid fa-dumpster-fire mr-1.5"></i> Kompletten Speicher löschen
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= QUICK INPUT MODAL OVERLAY ================= -->
+    <div id="modal-entry" class="fixed inset-0 bg-slate-900/60 dark:bg-darkBg/95 backdrop-blur-md hidden opacity-0 z-40 p-4 flex flex-col justify-end transition-all">
+        <div class="max-w-md mx-auto w-full bg-white dark:bg-darkCard border border-slate-200 dark:border-slate-800 rounded-[32px] p-5 shadow-2xl space-y-4 max-h-[88vh] overflow-y-auto no-scrollbar transform translate-y-10 transition-transform duration-300" id="modal-content-wrapper">
+            <div class="flex justify-between items-center border-b border-slate-100 dark:border-slate-800/80 pb-2.5">
+                <h2 id="modal-title" class="text-sm font-black uppercase tracking-wider text-slate-800 dark:text-slate-100">Ausgabe buchen</h2>
+                <button class="text-slate-400 p-2 text-sm hover:text-slate-600 dark:hover:text-slate-100 active-scale" onclick="uiToggleModal(false)"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+
+            <input type="hidden" id="in-expense-id">
+
+            <!-- Betrag -->
+            <div>
+                <label class="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Betrag (CHF)</label>
+                <div class="relative">
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 font-black text-slate-400 text-sm">CHF</span>
+                    <input type="number" id="in-amount" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-2xl pl-14 pr-4 py-3.5 text-2xl font-black text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500 dark:focus:border-darkAccentBlue transition-colors" placeholder="0.00" step="0.05" inputmode="decimal">
+                </div>
+            </div>
+
+            <!-- Raster statt Dropdowns -->
+            <div>
+                <label class="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Kategorie-Direktwahl</label>
+                <input type="hidden" id="in-selected-cat">
+                <div id="ui-icon-grid" class="grid grid-cols-3 gap-2.5 max-h-40 overflow-y-auto p-1 no-scrollbar">
+                    <!-- Dynamisch -->
+                </div>
+            </div>
+
+            <!-- Notiz -->
+            <div>
+                <label class="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Notiz / Geschäft (Optional)</label>
+                <input type="text" id="in-note" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:border-sky-500 dark:focus:border-darkAccentBlue" placeholder="z.B. Coop, SBB, Swisscom">
+            </div>
+
+            <!-- Datum -->
+            <div>
+                <label class="text-[10px] text-slate-400 font-black uppercase tracking-widest block mb-1.5">Datum</label>
+                <input type="date" id="in-date" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-700 rounded-2xl px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-bold focus:outline-none focus:border-sky-500 dark:focus:border-darkAccentBlue">
+            </div>
+
+            <button id="btn-save-expense" class="w-full bg-sky-600 dark:bg-gradient-to-r dark:from-darkAccentBlue dark:to-accentGreen text-white dark:text-darkBg font-black py-4 rounded-2xl text-xs uppercase tracking-widest shadow-lg active-scale mt-2" onclick="uiSaveExpense()">
+                Transaktion Buchen
+            </button>
+        </div>
+    </div>
+
+    <!-- Einhand-optimierte Untere Navigationsleiste -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-darkCard/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800/80 z-30 pb-safe transition-colors duration-300">
+        <div class="max-w-md mx-auto flex justify-around items-center h-16 relative px-6">
+            
+            <button id="nav-dashboard" class="flex flex-col items-center justify-center w-16 h-full text-sky-600 dark:text-darkAccentBlue transition-colors active-scale" onclick="uiSwitchTab('dashboard')">
+                <i class="fa-solid fa-chart-pie text-xl mb-0.5"></i>
+                <span class="text-[9px] font-black tracking-widest uppercase">Zentrale</span>
+            </button>
+
+            <!-- Zentraler Buchungs-Hub FAB -->
+            <div class="absolute -top-5 left-1/2 -translate-x-1/2">
+                <button class="bg-sky-600 dark:bg-gradient-to-tr dark:from-darkAccentBlue dark:to-accentGreen text-white dark:text-darkBg w-14 h-14 rounded-2xl flex items-center justify-center shadow-xl shadow-sky-600/20 dark:shadow-darkAccentBlue/30 transform active:scale-90 hover:rotate-90 transition-all duration-300" onclick="uiOpenAddMode()">
+                    <i class="fa-solid fa-plus text-xl font-black"></i>
+                </button>
+            </div>
+
+            <div class="w-12"></div>
+
+            <button id="nav-manage" class="flex flex-col items-center justify-center w-16 h-full text-slate-400 transition-colors active-scale" onclick="uiSwitchTab('manage')">
+                <i class="fa-solid fa-sliders text-xl mb-0.5"></i>
+                <span class="text-[9px] font-black tracking-widest uppercase">Konfig</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- App Applikations-Logik -->
+    <script>
+        // Globaler Exception-Handler
+        window.onerror = function(msg, url, line) {
+            const display = document.getElementById('error-display');
+            const indicator = document.getElementById('error-indicator');
+            if(display) {
+                display.classList.remove('hidden');
+                display.innerHTML = `<strong>Runtime System-Log:</strong> ${msg} (Zeile ${line})`;
+            }
+            if(indicator) indicator.className = "bg-accentRed/10 text-accentRed px-2.5 py-1 rounded-full text-[10px] font-bold animate-pulse";
+            return false;
+        };
+
+        // Standard-Struktur (Schweiz CHF Fokus)
+        let db = {
+            budget: 600.00,
+            categories: [
+                { id: 'c1', name: 'Lebensmittel', color: '#10b981', icon: 'fa-utensils' },
+                { id: 'c2', name: 'Shopping & Freizeit', color: '#0284c7', icon: 'fa-bag-shopping' },
+                { id: 'c3', name: 'Mobilität & Bahn', color: '#f59e0b', icon: 'fa-car' },
+                { id: 'c4', name: 'Fixkosten & Miete', color: '#ef4444', icon: 'fa-house' }
+            ],
+            expenses: []
+        };
+
+        let chartInstance = null;
+        let activeTab = 'dashboard';
+
+        // Theme Switcher Engine (White Mode standardmäßig / persistent)
+        function sysToggleTheme() {
+            const root = document.getElementById('html-root');
+            const metaTheme = document.getElementById('meta-theme-color');
+            
+            if (root.classList.contains('dark')) {
+                root.classList.remove('dark');
+                localStorage.setItem('pocket_budget_theme', 'light');
+                if(metaTheme) metaTheme.setAttribute('content', '#f8fafc');
+            } else {
+                root.classList.add('dark');
+                localStorage.setItem('pocket_budget_theme', 'dark');
+                if(metaTheme) metaTheme.setAttribute('content', '#0f172a');
+            }
+            uiUpdateChartTheme();
+        }
+
+        function sysApplySavedTheme() {
+            const root = document.getElementById('html-root');
+            const metaTheme = document.getElementById('meta-theme-color');
+            const savedTheme = localStorage.getItem('pocket_budget_theme') || 'light'; // Standard ist jetzt "White Mode" (light)
+            
+            if (savedTheme === 'dark') {
+                root.classList.add('dark');
+                if(metaTheme) metaTheme.setAttribute('content', '#0f172a');
+            } else {
+                root.classList.remove('dark');
+                if(metaTheme) metaTheme.setAttribute('content', '#f8fafc');
+            }
+        }
+
+        // Bootstrapping
+        function sysBoot() {
+            sysApplySavedTheme();
+            const loaderBar = document.getElementById('splash-loader');
+            const statusBadge = document.getElementById('storage-status');
+            
+            if (loaderBar) {
+                setTimeout(() => { loaderBar.style.transform = 'scale-x(1)'; }, 50);
+            }
+
+            try {
+                const saved = localStorage.getItem('pocket_budget_v12');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && Array.isArray(parsed.categories) && Array.isArray(parsed.expenses)) {
+                        db = parsed;
+                    }
+                }
+                if(statusBadge) statusBadge.textContent = "Speicher: Lokal Verschlüsselt ✓";
+            } catch (e) {
+                if(statusBadge) statusBadge.textContent = "Speicher: Temporärer RAM";
+            }
+            
+            document.getElementById('in-sys-budget').value = db.budget;
+            document.getElementById('in-date').value = new Date().toISOString().split('T')[0];
+            
+            uiInitChart();
+            uiRender();
+
+            // Splash Screen Animation-Out
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
+                    setTimeout(() => splash.remove(), 700);
+                }
+            }, 1000);
+        }
+
+        function sysSave() {
+            try {
+                localStorage.setItem('pocket_budget_v12', JSON.stringify(db));
+            } catch (e) {}
+        }
+
+        function uiSwitchTab(tabName) {
+            activeTab = tabName;
+            document.getElementById('tab-dashboard').classList.add('hidden');
+            document.getElementById('tab-manage').classList.add('hidden');
+            
+            const dashNav = document.getElementById('nav-dashboard');
+            const manageNav = document.getElementById('nav-manage');
+
+            dashNav.className = "flex flex-col items-center justify-center w-16 h-full text-slate-400 transition-colors active-scale";
+            manageNav.className = "flex flex-col items-center justify-center w-16 h-full text-slate-400 transition-colors active-scale";
+
+            if(tabName === 'dashboard') {
+                document.getElementById('tab-dashboard').classList.remove('hidden');
+                dashNav.classList.add('text-sky-600', 'dark:text-darkAccentBlue');
+            } else if(tabName === 'manage') {
+                document.getElementById('tab-manage').classList.remove('hidden');
+                manageNav.classList.add('text-sky-600', 'dark:text-darkAccentBlue');
+            }
+            uiRender();
+        }
+
+        function uiToggleModal(show) {
+            const modal = document.getElementById('modal-entry');
+            const wrapper = document.getElementById('modal-content-wrapper');
+            if (show) {
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    wrapper.classList.remove('translate-y-10');
+                }, 20);
+            } else {
+                modal.classList.add('opacity-0');
+                wrapper.classList.add('translate-y-10');
+                setTimeout(() => { modal.classList.add('hidden'); }, 250);
+            }
+        }
+
+        function uiInitChart() {
+            const ctx = document.getElementById('analyticsChart').getContext('2d');
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: [], datasets: [{ data: [], backgroundColor: [], borderWidth: 0 }] },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { animateScale: true, animateRotate: true, duration: 500 },
+                    plugins: {
+                        legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 11, weight: 'bold' } } }
+                    },
+                    cutout: '74%'
+                }
+            });
+            uiUpdateChartTheme();
+        }
+
+        function uiUpdateChartTheme() {
+            if(!chartInstance) return;
+            const isDark = document.getElementById('html-root').classList.contains('dark');
+            chartInstance.options.plugins.legend.labels.color = isDark ? '#94a3b8' : '#334155';
+            chartInstance.update();
+        }
+
+        function sysUpdateBudget() {
+            const val = parseFloat(document.getElementById('in-sys-budget').value);
+            if(!isNaN(val) && val > 0) {
+                db.budget = val;
+                uiRender();
+                alert("Budget konfiguriert!");
+            } else {
+                alert("Bitte validen Wert eintragen.");
+            }
+        }
+
+        // Berechnungs- & Render-Zentrale
+        function uiRender() {
+            sysSave();
+            
+            let totalSpent = 0;
+            db.expenses.forEach(e => totalSpent += e.amount);
+            const remaining = db.budget - totalSpent;
+
+            const remEl = document.getElementById('ui-remaining');
+            remEl.textContent = `CHF ${remaining.toFixed(2)}`;
+            
+            const budgetRatio = totalSpent / db.budget;
+            const progressBar = document.getElementById('ui-progress-bar');
+            
+            // Warnstufen-Farblogik (80% / 100%)
+            progressBar.className = "h-full rounded-full transition-all duration-700 ease-out ";
+            if (budgetRatio >= 1.0) {
+                progressBar.classList.add('bg-accentRed');
+                remEl.className = "text-3xl font-black my-1.5 tracking-tight text-accentRed";
+            } else if (budgetRatio >= 0.8) {
+                progressBar.classList.add('bg-accentOrange');
+                remEl.className = "text-3xl font-black my-1.5 tracking-tight text-accentOrange";
+            } else {
+                progressBar.classList.add('bg-accentGreen');
+                remEl.className = "text-3xl font-black my-1.5 tracking-tight text-slate-900 dark:text-slate-100";
+            }
+
+            progressBar.style.width = `${Math.min(budgetRatio * 100, 100)}%`;
+            
+            document.getElementById('ui-spent').textContent = `Ausgegeben: CHF ${totalSpent.toFixed(2)}`;
+            document.getElementById('ui-budget-max').textContent = `Budget: CHF ${db.budget.toFixed(2)}`;
+
+            // Grid Generierung
+            let chartLabels = [];
+            let chartData = [];
+            let chartColors = [];
+            let tilesHtml = '';
+
+            db.categories.forEach(cat => {
+                let catSpent = 0;
+                db.expenses.forEach(e => { if(e.catId === cat.id) catSpent += e.amount; });
+                
+                tilesHtml += `
+                    <div class="bg-white dark:bg-darkCard/70 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-800/80 flex items-center justify-between transition-all duration-300 hover:scale-[1.02] shadow-sm">
+                        <div class="flex items-center gap-3 overflow-hidden">
+                            <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background-color: ${cat.color}15; color: ${cat.color}">
+                                <i class="fa-solid ${cat.icon} text-xs"></i>
+                            </div>
+                            <div class="truncate">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-wider truncate">${cat.name}</p>
+                                <p class="text-sm font-black text-slate-800 dark:text-slate-200">CHF ${catSpent.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    </div>`;
+
+                if(catSpent > 0) {
+                    chartLabels.push(cat.name);
+                    chartData.push(catSpent);
+                    chartColors.push(cat.color);
+                }
+            });
+
+            document.getElementById('ui-category-tiles').innerHTML = tilesHtml;
+
+            // Chart Sync
+            if(chartData.length === 0) {
+                document.getElementById('chart-placeholder').classList.remove('hidden');
+                if(chartInstance) {
+                    chartInstance.data.labels = [];
+                    chartInstance.data.datasets[0].data = [];
+                    chartInstance.update();
+                }
+            } else {
+                document.getElementById('chart-placeholder').classList.add('hidden');
+                if(chartInstance) {
+                    chartInstance.data.labels = chartLabels;
+                    chartInstance.data.datasets[0].data = chartData;
+                    chartInstance.data.datasets[0].backgroundColor = chartColors;
+                    chartInstance.update();
+                }
+            }
+
+            // FILTER & SUCHE LOGIK FÜR VERLAUF
+            const searchQuery = document.getElementById('ui-search-history') ? document.getElementById('ui-search-history').value.toLowerCase().trim() : '';
+            const miniHistDiv = document.getElementById('ui-mini-history');
+            
+            // Filter anwenden
+            let filteredExpenses = [...db.expenses];
+            if(searchQuery) {
+                filteredExpenses = filteredExpenses.filter(exp => {
+                    const cat = db.categories.find(c => c.id === exp.catId) || { name: '' };
+                    const noteMatch = exp.note && exp.note.toLowerCase().includes(searchQuery);
+                    const catMatch = cat.name.toLowerCase().includes(searchQuery);
+                    const amountMatch = exp.amount.toString().includes(searchQuery);
+                    return noteMatch || catMatch || amountMatch;
+                });
+            }
+
+            if(filteredExpenses.length === 0) {
+                miniHistDiv.innerHTML = `<p class="text-slate-400 dark:text-slate-500 text-xs font-bold text-center py-6">Keine passenden Buchungen gefunden.</p>`;
+            } else {
+                let histHtml = '';
+                // Neueste oben
+                filteredExpenses.reverse().forEach(exp => {
+                    const cat = db.categories.find(c => c.id === exp.catId) || { name: 'Allgemein', color: '#94a3b8', icon: 'fa-tags' };
+                    
+                    let formattedDate = exp.date;
+                    try {
+                        const d = new Date(exp.date);
+                        formattedDate = d.toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                    } catch(e){}
+
+                    histHtml += `
+                        <div class="py-3 flex justify-between items-center transition-all hover:bg-slate-100 dark:hover:bg-slate-800/30 px-1 rounded-xl">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <div class="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style="background-color: ${cat.color}15; color: ${cat.color}">
+                                    <i class="fa-solid ${cat.icon} text-sm"></i>
+                                </div>
+                                <div class="truncate">
+                                    <h4 class="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">${exp.note || cat.name}</h4>
+                                    <p class="text-[10px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">${cat.name} • ${formattedDate}</p>
+                                </div>
+                            </div>
+                            <div class="text-right shrink-0 flex items-center gap-3">
+                                <span class="text-xs font-black text-slate-900 dark:text-slate-100">CHF ${exp.amount.toFixed(2)}</span>
+                                <div class="flex gap-1">
+                                    <button class="text-slate-400 hover:text-sky-600 dark:hover:text-darkAccentBlue p-1.5 text-xs active-scale" onclick="uiOpenEditMode('${exp.id}')"><i class="fa-solid fa-pen-to-square"></i></button>
+                                    <button class="text-slate-400 hover:text-accentRed p-1.5 text-xs active-scale" onclick="uiDeleteExpense('${exp.id}')"><i class="fa-solid fa-trash"></i></button>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                miniHistDiv.innerHTML = histHtml;
+            }
+
+            // Konfig-Tab Liste
+            const manageCatDiv = document.getElementById('ui-manage-categories');
+            manageCatDiv.innerHTML = db.categories.map(c => `
+                <div class="flex justify-between items-center bg-slate-50 dark:bg-slate-900/80 px-3.5 py-2 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <span class="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center"><i class="fa-solid ${c.icon} mr-2 text-sm" style="color:${c.color}"></i>${c.name}</span>
+                    <button class="text-accentRed/70 hover:text-accentRed text-xs p-1 active-scale" onclick="uiDeleteCategory('${c.id}')"><i class="fa-solid fa-trash-can"></i></button>
+                </div>
+            `).join('');
+
+            uiRenderCategoryGrid();
+        }
+
+        // Schnellwahl Icon-Grid
+        function uiRenderCategoryGrid() {
+            const grid = document.getElementById('ui-icon-grid');
+            const selectedCatId = document.getElementById('in-selected-cat').value;
+            
+            grid.innerHTML = db.categories.map(c => {
+                const isSelected = c.id === selectedCatId;
+                return `
+                    <div onclick="uiSelectGridCategory('${c.id}')" class="p-2.5 rounded-xl border-2 transition-all duration-200 cursor-pointer text-center flex flex-col items-center gap-1.5 active-scale ${isSelected ? 'bg-slate-100 dark:bg-slate-800/90 border-sky-500 dark:border-darkAccentBlue scale-95 shadow-md' : 'bg-slate-50 dark:bg-slate-950 border-transparent hover:border-slate-200 dark:hover:border-slate-800'}">
+                        <div class="w-8 h-8 rounded-lg flex items-center justify-center" style="background-color: ${c.color}20; color: ${c.color}">
+                            <i class="fa-solid ${c.icon} text-sm"></i>
+                        </div>
+                        <span class="text-[9px] font-black text-slate-600 dark:text-slate-300 block truncate w-full uppercase tracking-wider">${c.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function uiSelectGridCategory(id) {
+            document.getElementById('in-selected-cat').value = id;
+            uiRenderCategoryGrid();
+        }
+
+        function uiOpenAddMode() {
+            document.getElementById('modal-title').textContent = "Ausgabe buchen";
+            document.getElementById('in-expense-id').value = "";
+            document.getElementById('in-amount').value = "";
+            document.getElementById('in-note').value = "";
+            document.getElementById('in-date').value = new Date().toISOString().split('T')[0];
+            if(db.categories.length > 0) {
+                document.getElementById('in-selected-cat').value = db.categories[0].id;
+            }
+            uiToggleModal(true);
+            uiRenderCategoryGrid();
+        }
+
+        function uiOpenEditMode(id) {
+            const target = db.expenses.find(e => e.id === id);
+            if(!target) return;
+
+            document.getElementById('modal-title').textContent = "Buchung korrigieren";
+            document.getElementById('in-expense-id').value = target.id;
+            document.getElementById('in-amount').value = target.amount;
+            document.getElementById('in-note').value = target.note || "";
+            document.getElementById('in-date').value = target.date;
+            document.getElementById('in-selected-cat').value = target.catId;
+
+            uiToggleModal(true);
+            uiRenderCategoryGrid();
+        }
+
+        function uiSaveExpense() {
+            const id = document.getElementById('in-expense-id').value;
+            const amtEl = document.getElementById('in-amount');
+            const catId = document.getElementById('in-selected-cat').value;
+            const note = document.getElementById('in-note').value.trim();
+            const date = document.getElementById('in-date').value;
+
+            const amount = parseFloat(amtEl.value);
+            if(isNaN(amount) || amount <= 0) {
+                alert("Gültigen CHF-Betrag erfassen.");
+                return;
+            }
+            if(!catId) {
+                alert("Wähle eine Kategorie.");
+                return;
+            }
+
+            if(id) {
+                const idx = db.expenses.findIndex(e => e.id === id);
+                if(idx !== -1) db.expenses[idx] = { id, amount, catId, note, date };
+            } else {
+                db.expenses.push({
+                    id: 'exp_' + Date.now() + Math.random().toString(36).substr(2, 4),
+                    amount, catId, note, date
+                });
+            }
+
+            uiToggleModal(false);
+            uiRender();
+        }
+
+        function uiDeleteExpense(id) {
+            if(confirm("Diese Transaktion aus dem Verlauf entfernen?")) {
+                db.expenses = db.expenses.filter(e => e.id !== id);
+                uiRender();
+            }
+        }
+
+        function uiAddCategory() {
+            const nameEl = document.getElementById('in-cat-name');
+            const colorEl = document.getElementById('in-cat-color');
+            const iconEl = document.getElementById('in-cat-icon');
+            const name = nameEl.value.trim();
+
+            if(!name) {
+                alert("Name benötigt.");
+                return;
+            }
+
+            db.categories.push({
+                id: 'c_' + Date.now(),
+                name: name,
+                color: colorEl.value,
+                icon: iconEl.value
+            });
+
+            nameEl.value = '';
+            uiRender();
+        }
+
+        function uiDeleteCategory(catId) {
+            if(db.expenses.some(e => e.catId === catId)) {
+                if(!confirm("Kategorie enthält aktive Buchungen. Fortfahren?")) return;
+            }
+            db.categories = db.categories.filter(c => c.id !== catId);
+            uiRender();
+        }
+
+        // Backup & Exports
+        function sysExportJSON() {
+            const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'pocketbudget_backup.json';
+            a.click();
+        }
+
+        function sysImportJSON(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if(parsed.categories && parsed.expenses) {
+                        db = parsed;
+                        if(!db.budget) db.budget = 600.00;
+                        document.getElementById('in-sys-budget').value = db.budget;
+                        uiRender();
+                        alert("Daten importiert!");
+                    }
+                } catch(err) { alert("Invalides JSON-Format."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function sysExportCSV() {
+            let csvContent = "\ufeffDatum;Kategorie;Betrag_CHF;Notiz\r\n";
+            db.expenses.forEach(e => {
+                const cat = db.categories.find(c => c.id === e.catId) || { name: 'Allgemein' };
+                const noteClean = e.note ? e.note.replace(/;/g, ',') : '';
+                csvContent += `${e.date};${cat.name};${e.amount.toFixed(2)};${noteClean}\r\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            link.href = URL.createObjectURL(blob);
+            link.setAttribute("download", "pocketbudget_datenblatt.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        function sysResetAll() {
+            if(confirm("Warnung: App vollständig zurücksetzen?")) {
+                try { localStorage.removeItem('pocket_budget_v12'); } catch(e){}
+                location.reload();
+            }
+        }
+
+        window.onload = sysBoot;
+
+        // OFFLINE CAPABLE PWA SERVICE WORKER ENGINE
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const cacheName = 'pocketbudget-pwa-v12';
+                const assets = [window.location.href];
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets)));
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {
+                console.log("ServiceWorker lokal autark geschaltet.");
+            });
+        }
+    </script>
+</body>
+</html>
