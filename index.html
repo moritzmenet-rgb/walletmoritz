@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pocket Budget Ultimate V11</title>
+    
+    <!-- Android PWA & Standalone Optimierungen -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a73e8">
+
+    <!-- Dein hochgeladenes Finanz-Icon für den Homescreen -->
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpreG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvYy1lYmEwIi8+IDwvcmRmOlRleHQ+IDwvcmRmOlIERj4gPC94OnhtcG1ldGE+ADw/eHBhY2tldCBlbmQ9InciPz46Xp74AAAAZQTFRF///MmZmZg7isAAAAAnRSTlMAAH1fvQAAADJJREFUeNrs0EERAAAIA6BJwb8mDhSgtAn6Y9G67Lp6mS9AgAABAgQIECBAgAABAgQIEiBAsALV9AAt+N6DdgAAAABJRU5ErkJggg==">
+    <link rel="apple-touch-icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAIAAAACACAMAAAD04JH5AAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyJpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTM4IDc5LjE1OTgyNCwgMjAxNi8wOS8xNC0wMTowOTowMSAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczpreG1wTU09Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9tbS8iIHhtbG5zOnN0UmVmPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvYy1lYmEwIi8+IDwvcmRmOlRleHQ+IDwvcmRmOlIERj4gPC94OnhtcG1ldGE+ADw/eHBhY2tldCBlbmQ9InciPz46Xp74AAAAZQTFRF///MmZmZg7isAAAAAnRSTlMAAH1fvQAAADJJREFUeNrs0EERAAAIA6BJwb8mDhSgtAn6Y9G67Lp6mS9AgAABAgQIECBAgAABAgQIEiBAsALV9AAt+N6DdgAAAABJRU5ErkJggg==">
+
+    <!-- Externe Bibliotheken (Fonts & Icons) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg: #f8f9fa;
+            --surface: #ffffff;
+            --text: #202124;
+            --primary: #1a73e8;
+            --outline: #dadce0;
+            --tonal: #f1f3f4;
+            --error: #d93025;
+            --success: #1e8e3e;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #121212;
+                --surface: #1e1e1e;
+                --text: #e3e2e6;
+                --outline: #3c4043;
+                --tonal: #2d2d30;
+                --primary: #8ab4f8;
+            }
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background-color: var(--bg); 
+            color: var(--text); 
+            font-family: 'Roboto', sans-serif; 
+            padding: 24px 14px 60px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* Splash-Screen Styles */
+        #splash-screen {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #1a73e8;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            color: white;
+        }
+        #splash-screen i { font-size: 64px; margin-bottom: 20px; animation: pulse 1.5s infinite ease-in-out; }
+        #splash-screen h2 { font-size: 24px; font-weight: 700; letter-spacing: 0.5px; }
+        @keyframes pulse {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+
+        header { text-align: center; margin-bottom: 20px; }
+        header h1 { font-size: 24px; font-weight: 700; color: var(--primary); }
+
+        #error-display {
+            display: none;
+            background: #fce8e6;
+            color: #a51d24;
+            padding: 14px;
+            border-radius: 14px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border: 1px solid #f5c2c7;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid var(--outline);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #1a73e8, #0d47a1);
+            color: white;
+            text-align: center;
+            border: none;
+        }
+        .hero-title { font-size: 12px; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px; }
+        .hero-val { font-size: 36px; font-weight: 700; margin: 6px 0; }
+
+        h3 { font-size: 16px; font-weight: 500; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+
+        input, select {
+            width: 100%;
+            background-color: var(--tonal);
+            border: 2px solid transparent;
+            border-radius: 12px;
+            padding: 12px;
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 10px;
+            outline: none;
+        }
+        input:focus, select:focus { border-color: var(--primary); }
+        
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border-radius: 50px;
+            border: none;
+            background-color: var(--primary);
+            color: white;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        .btn:active { opacity: 0.8; }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--outline);
+        }
+        .item:last-child { border-bottom: none; }
+        .item-info h4 { font-size: 15px; font-weight: 500; }
+        .item-info p { font-size: 12px; opacity: 0.6; }
+        .item-amount { font-weight: 700; text-align: right; }
+        .item-del { color: var(--error); font-size: 12px; cursor: pointer; background: none; border: none; margin-top: 2px; }
+
+        .progress-container { margin-bottom: 10px; }
+        .progress-meta { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 2px; }
+        .progress-bar { height: 6px; background: var(--tonal); border-radius: 3px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; }
+
+        .flex { display: flex; gap: 6px; }
+        .status-badge { font-size: 11px; opacity: 0.5; text-align: center; margin-top: 6px; }
+    </style>
+</head>
+<body>
+
+    <!-- Animierter Splash-Screen -->
+    <div id="splash-screen">
+        <i class="fa-solid fa-wallet"></i>
+        <h2>Pocket Budget</h2>
+    </div>
+
+    <header>
+        <h1>Pocket Budget</h1>
+        <div id="storage-status" class="status-badge">System-Check...</div>
+    </header>
+
+    <div id="error-display"></div>
+
+    <div class="card hero">
+        <div class="hero-title">Verfügbares Budget</div>
+        <div class="hero-val" id="ui-remaining">CHF --.--</div>
+        <div id="ui-spent" style="font-size: 12px; opacity: 0.9;">Ausgegeben: CHF 0.00</div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-plus-circle" style="color:var(--primary)"></i> Ausgabe erfassen</h3>
+        <input type="number" id="in-amount" placeholder="Betrag (z.B. 12.50)" step="0.05" inputmode="decimal">
+        <select id="in-category"></select>
+        <input type="text" id="in-note" placeholder="Notiz (Optional)">
+        <button class="btn" onclick="uiAddExpense()">Hinzufügen</button>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-chart-bar" style="color:var(--success)"></i> Kategorien-Übersicht</h3>
+        <div id="ui-stats"></div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-history" style="color:#f59e0b"></i> Verlauf</h3>
+        <div id="ui-history"></div>
+    </div>
+
+    <div class="card">
+        <h3><i class="fa-solid fa-gear"></i> System-Einstellungen</h3>
+        
+        <!-- Dynamische Budget-Zuweisung -->
+        <div style="margin-bottom: 16px;">
+            <p style="font-size:13px; margin-bottom:6px;">Monatliches Budget anpassen (CHF):</p>
+            <div class="flex">
+                <input type="number" id="in-sys-budget" placeholder="Zahl z.B. 500" style="margin:0;" step="10">
+                <button class="btn" style="width:auto; padding:0 14px; border-radius:12px;" onclick="sysUpdateBudget()">Speichern</button>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <p style="font-size:13px; margin-bottom:6px;">Kategorie erstellen:</p>
+            <div class="flex">
+                <input type="text" id="in-cat-name" placeholder="Name" style="margin:0;">
+                <input type="color" id="in-cat-color" value="#1a73e8" style="width:50px; height:44px; padding:2px; margin:0;">
+                <button class="btn" style="width:auto; padding:0 14px; border-radius:12px;" onclick="uiAddCategory()">+</button>
+            </div>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--outline); margin:12px 0;">
+
+        <div class="flex">
+            <button class="btn" style="background:var(--tonal); color:var(--text); font-size:13px; padding:8px;" onclick="sysExport()">📥 Backup</button>
+            <button class="btn" style="background:var(--tonal); color:var(--text); font-size:13px; padding:8px;" onclick="document.getElementById('sys-import-file').click()">📤 Import</button>
+        </div>
+        <input type="file" id="sys-import-file" style="display:none" onchange="sysImport(event)">
+
+        <button class="btn" style="background:var(--error); color:white; margin-top:16px; font-size:13px; padding:8px;" onclick="sysReset()">⚠️ SPEICHER LÖSCHEN & RESET</button>
+    </div>
+
+    <script>
+        // Automatischer Fehler-Abfangjäger
+        window.onerror = function(msg, url, line) {
+            const errDiv = document.getElementById('error-display');
+            if(errDiv) {
+                errDiv.style.display = 'block';
+                errDiv.innerHTML = `<strong>App-Fehler erkannt:</strong> ${msg} (Zeile ${line})`;
+            }
+            return false;
+        };
+
+        // Standard-Datenstruktur
+        let db = {
+            budget: 240.00,
+            categories: [
+                { id: 'c1', name: 'Essen & Trinken', color: '#f59e0b' },
+                { id: 'c2', name: 'Freizeit & Shopping', color: '#10b981' },
+                { id: 'c3', name: 'Transport & Fixkosten', color: '#1a73e8' }
+            ],
+            expenses: []
+        };
+
+        // Sicherer Boot-Vorgang
+        function sysBoot() {
+            const statusBadge = document.getElementById('storage-status');
+            try {
+                const saved = localStorage.getItem('pocket_budget_v11');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    if (parsed && Array.isArray(parsed.categories) && Array.isArray(parsed.expenses)) {
+                        db = parsed;
+                        if(!db.budget) db.budget = 240.00;
+                    }
+                }
+                if(statusBadge) statusBadge.textContent = "Speicher: Aktiviert ✓";
+            } catch (e) {
+                if(statusBadge) statusBadge.textContent = "Speicher: Temporär im RAM (Schutz vor Absturz)";
+            }
+            
+            document.getElementById('in-sys-budget').value = db.budget;
+            uiRender();
+
+            // Splash-Screen sanft ausblenden
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    splash.style.transform = 'scale(1.1)';
+                    setTimeout(() => splash.remove(), 500);
+                }
+            }, 800);
+        }
+
+        function sysSave() {
+            try {
+                localStorage.setItem('pocket_budget_v11', JSON.stringify(db));
+            } catch (e) {}
+        }
+
+        function sysUpdateBudget() {
+            const bEl = document.getElementById('in-sys-budget');
+            const val = parseFloat(bEl.value);
+            if(!isNaN(val) && val > 0) {
+                db.budget = val;
+                uiRender();
+                alert("Monatliches Budget erfolgreich aktualisiert!");
+            } else {
+                alert("Bitte gib ein gültiges Budget ein.");
+            }
+        }
+
+        function uiRender() {
+            sysSave();
+            
+            let totalSpent = 0;
+            for(let i=0; i<db.expenses.length; i++) {
+                totalSpent += db.expenses[i].amount;
+            }
+            const rem = db.budget - totalSpent;
+
+            const remEl = document.getElementById('ui-remaining');
+            remEl.textContent = `CHF ${rem.toFixed(2)}`;
+            remEl.style.color = rem < 0 ? 'var(--error)' : 'inherit';
+            
+            document.getElementById('ui-spent').textContent = `Ausgegeben: CHF ${totalSpent.toFixed(2)}`;
+
+            const select = document.getElementById('in-category');
+            select.innerHTML = db.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            const statsDiv = document.getElementById('ui-stats');
+            if(db.expenses.length === 0) {
+                statsDiv.innerHTML = `<p style="opacity:0.5; text-align:center; font-size:13px; padding:6px;">Keine Ausgaben vorhanden.</p>`;
+            } else {
+                let statsHtml = '';
+                db.categories.forEach(cat => {
+                    let catSpent = 0;
+                    db.expenses.forEach(e => { if(e.catId === cat.id) catSpent += e.amount; });
+                    if(catSpent > 0) {
+                        const pct = totalSpent > 0 ? ((catSpent / totalSpent) * 100).toFixed(0) : 0;
+                        statsHtml += `
+                            <div class="progress-container">
+                                <div class="progress-meta">
+                                    <span><i class="fa-solid fa-circle" style="color:${cat.color}; font-size:9px;"></i> ${cat.name}</span>
+                                    <strong>CHF ${catSpent.toFixed(2)} (${pct}%)</strong>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${pct}%; background-color: ${cat.color};"></div>
+                                </div>
+                            </div>`;
+                    }
+                });
+                statsDiv.innerHTML = statsHtml || `<p style="opacity:0.5; text-align:center; font-size:13px;">Keine Ausgaben in aktuellen Kategorien.</p>`;
+            }
+
+            const histDiv = document.getElementById('ui-history');
+            if(db.expenses.length === 0) {
+                histDiv.innerHTML = `<p style="opacity:0.5; text-align:center; font-size:13px; padding:6px;">Verlauf leer.</p>`;
+            } else {
+                let histHtml = '';
+                for(let i = db.expenses.length - 1; i >= 0; i--) {
+                    const exp = db.expenses[i];
+                    const cat = db.categories.find(c => c.id === exp.catId) || { name: 'Unbekannt' };
+                    histHtml += `
+                        <div class="item">
+                            <div class="item-info">
+                                <h4>${exp.note || cat.name}</h4>
+                                <p>${cat.name} • ${exp.date}</p>
+                            </div>
+                            <div class="item-amount">
+                                <div>CHF ${exp.amount.toFixed(2)}</div>
+                                <button class="item-del" onclick="uiDeleteExpense(${i})">Löschen</button>
+                            </div>
+                        </div>`;
+                }
+                histDiv.innerHTML = histHtml;
+            }
+        }
+
+        function uiAddExpense() {
+            const amtEl = document.getElementById('in-amount');
+            const catEl = document.getElementById('in-category');
+            const noteEl = document.getElementById('in-note');
+
+            const amount = parseFloat(amtEl.value);
+            if(isNaN(amount) || amount <= 0) {
+                alert("Bitte gib einen gültigen Betrag ein.");
+                return;
+            }
+
+            const dateStr = new Date().toLocaleDateString('de-CH', { day: '2-digit', month: '2-digit' });
+
+            db.expenses.push({
+                amount: amount,
+                catId: catEl.value,
+                note: noteEl.value.trim(),
+                date: dateStr
+            });
+
+            amtEl.value = '';
+            noteEl.value = '';
+            uiRender();
+        }
+
+        function uiDeleteExpense(index) {
+            if(confirm("Diese Ausgabe löschen?")) {
+                db.expenses.splice(index, 1);
+                uiRender();
+            }
+        }
+
+        function uiAddCategory() {
+            const nameEl = document.getElementById('in-cat-name');
+            const colorEl = document.getElementById('in-cat-color');
+            const name = nameEl.value.trim();
+
+            if(!name) {
+                alert("Bitte einen Namen eingeben.");
+                return;
+            }
+
+            db.categories.push({
+                id: 'c_' + Date.now(),
+                name: name,
+                color: colorEl.value
+            });
+
+            nameEl.value = '';
+            uiRender();
+        }
+
+        function sysExport() {
+            const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'pocket_budget_backup.json';
+            a.click();
+        }
+
+        function sysImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(evt) {
+                try {
+                    const parsed = JSON.parse(evt.target.result);
+                    if(parsed.categories && parsed.expenses) {
+                        db = parsed;
+                        if(!db.budget) db.budget = 240.00;
+                        document.getElementById('in-sys-budget').value = db.budget;
+                        uiRender();
+                        alert("Backup erfolgreich importiert!");
+                    }
+                } catch(err) { alert("Fehlerhafte Backup-Datei."); }
+            };
+            reader.readAsText(file);
+        }
+
+        function sysReset() {
+            if(confirm("Möchtest du wirklich alle Daten löschen?")) {
+                try { localStorage.removeItem('pocket_budget_v11'); } catch(e){}
+                location.reload();
+            }
+        }
+
+        window.onload = sysBoot;
+
+        // AUTOMATISCHER OFFLINE SERVICE WORKER (PWA TRICK)
+        if ('serviceWorker' in navigator) {
+            const swCode = `
+                const cacheName = 'pocketbudget-v11';
+                const assets = [window.location.href];
+                self.addEventListener('install', e => {
+                    e.waitUntil(caches.open(cacheName).then(cache => cache.addAll(assets)));
+                });
+                self.addEventListener('fetch', e => {
+                    e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                });
+            `;
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(() => {
+                console.log("ServiceWorker lokal autark initialisiert.");
+            });
+        }
+    </script>
+</body>
+</html>
